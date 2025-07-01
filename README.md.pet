@@ -1,5 +1,15 @@
-
-# 1 Program Enhanced Text (PET) 1.0.0
+{%
+use('text')
+use('counters')
+VERSION=text("1.0.0")
+ch = ChapterCounter()
+n = 1
+def c():
+    global n
+    print(f"{n}",end='')
+    n = n + 1
+%}
+{%ch();ch.open()%} Program Enhanced Text (PET) {% VERSION() %}
 
 Program Enhanced Text (PET) is not a program.
 It is more like a methodology.
@@ -18,13 +28,13 @@ The author of this document has also created multiple tools over the years, whic
 
 In this document, I will explain the central questions of PET:
 
-*  What is PET?
+* {%CH1=text(" What is PET?"); CH1()%}
 
-*  What are the issues that PET solves?
+* {%CH2=text(" What are the issues that PET solves?");CH2() %}
 
-*  How to Apply PET in the Most Effective Ways.
+* {%CH3=text(" How to Apply PET in the Most Effective Ways."); CH3()%}
 
-## 1.1 What is PET?
+{%ch(); CH1()%}
 
 PET is a document maintenance automation philosophy.
 It says that
@@ -58,62 +68,62 @@ It can be somewhere in the environment.
 
 Regardless of the source, if the inclusion of information into the document can be automated, it should be automated.
 
-## 1.2 What are the issues that PET solves?
+{%ch(); CH2()%}
 
 As we have already discussed, PET eliminates the errors that result from the collision of redundancy and human maintenance.
 Humans are not good at doing tasks repetitively; machines are.
 
 Here are the main issues PET aims to solve:
 
-1. Outdated or inconsistent documentation
+{%c()%}. Outdated or inconsistent documentation
 
 When information is copied manually into documentation, there is a high risk that updates in the source are not reflected in the docs. PET ensures that documents stay in sync with their sources automatically.
 
-2. High maintenance costs
+{%c()%}. High maintenance costs
 
 Manual updates introduce overhead. Developers and technical writers spend time locating and updating repeated information across different documents. PET reduces this effort by introducing automation.
 
-3. Error-prone duplication
+{%c()%}. Error-prone duplication
 
 Redundant information—when not managed programmatically—leads to inconsistencies. PET promotes a single source of truth, pulling data or text dynamically from its original source.
 
-4. Delayed documentation updates
+{%c()%}. Delayed documentation updates
 
 When updating documentation is a manual chore, it often gets postponed or skipped entirely. PET makes updates a side-effect of the build or deployment process, minimizing human procrastination.
 
-5. Lack of trust in documentation
+{%c()%}. Lack of trust in documentation
 
 When readers repeatedly encounter outdated or inaccurate information, they lose trust in the documentation. PET helps restore that trust by making documents more reliable and up-to-date.
 
-##  How to Apply PET in the Most Effective Ways.
+## {%CH3()%}
 
 To apply PET most effectively, the goal should always be clarity, maintainability, and reduction of manual effort. Here are key strategies:
 
-1. Use a consistent templating engine
+{%n=1;c()%}. Use a consistent templating engine
 
 Choose a text templating system suitable for your environment.
 You can use Jamal, Jinja2, or even a custom processor, like in this document.
 Consistency in tooling makes maintenance and onboarding easier.
 
-2. Externalize the changeable
+{%c()%}. Externalize the changeable
 
 Move all dynamic or frequently changing content (e.g., code samples, config keys, version numbers) out of the static document.
 Reference them through PET macros that fetch the current value automatically.
 
-3. Integrate PET processing into the build
+{%c()%}. Integrate PET processing into the build
 
 Integrate the PET-to-markup transformation into your CI/CD or documentation build pipeline.
 This ensures up-to-date documents without requiring manual intervention in separate steps.
 
-4. Use PET selectively
+{%c()%}. Use PET selectively
 
 Not all parts of a document benefit from automation. Use PET where redundancy is a risk or where automation yields significant time savings. Avoid adding complexity for its own sake.
 
-5. Validate the output
+{%c()%}. Validate the output
 
 Automated documentation still needs review. Add validation steps to check that the final rendered documents are complete, readable, and consistent with expectations.
 
-## 1.3 PET the simplest way
+{%ch()%} PET the simplest way
 
 This document and the repository are an example of how to use PET with minimal tooling.
 The author of this document created Jamal and other similar tools with limited effort.
@@ -124,7 +134,7 @@ It does not mean, however, that PET as a general concept cannot be used.
 This repository contains a minimalistic Python script of less than 100 lines that implements the simplest templating ever.
 This is enough to use PET.
 
-Include your Python code in the `XYZ.md.pet` document between `{%` and `%}` strings.
+Include your Python code in the `XYZ.md.pet` document between {% print("`{%`",end='')%} and `%}` strings.
 Create simple libraries, such as those found in this repository's `.pet` directory.
 The templating provides a function `use()` to include these classes and definitions into your document.
 
@@ -151,5 +161,5 @@ Later, you may find other simple tools in this repository.
 
 
 
-## 1.4 Summary
+{%ch()%} Summary
 
