@@ -1,0 +1,85 @@
+# Using PET as Python Enhanced Text
+
+PET stands for Program Enhanced Text.
+This document describes one specific implementation demonstrated in this repository using Python as a programming tool.
+Using this tool, PET may stand as an abbreviation for Python Enhanced Text.
+
+## What is PET when it is Python Enhanced Text
+
+This repository contains `pet.py`, which is a minimalistic template engine written in Python.
+
+It is so minimalistic that it was written 2025-06-30 using Claude and the following prompt:
+
+>I need a Python script that reads a text file and everything that is between `{%` and `%}` characters (these are not nested) interprets as Python code, executes and creates an output file copying everything verbatim outside of these delimiters and as the result of the python code execution between the delimiters.
+
+Later I added
+
+>I want to add a method "use" to the file template_processor.py that I can use in the processed documents to include files from the directory ".pet" (Python Enhanced Text)
+
+As you can see that way a PET document is nothing but a preprocessed Markdown, Asccidoc, APT or just any markup format, where you can mix the Python code into the text.
+There is no magic in that.
+The real knowledge is how to organize the python code, what to have inside the document, and what to implement as pure Python code in the `.pet` directory.
+
+## How to use PET
+
+Create your document, and name it something like `README2.md.pet`.
+We will use this name in this document, as it is the name of this very document.
+The command line
+
+```
+python3 pet.py README2.md.pet README2.md
+```
+
+will generate the `README2.md`, which is an output file in this case.
+You should never edit or modify the output file manually, as you may lose the changes when executing the next time `pet.py`.
+
+The `README2.md.pet` will contain your document intermixed with Python code.
+The Python code is between `{%` and `%}` strings.
+
+>**NOTE:** You may use any different delimiters.
+`{%` and `%}` are the delimiters that proved to be the best during many years of use of PET using Asciidoc and Markdown.
+If you intend to use a different delimiter pair, you can modify your copy of `pet.py`.
+Don't do it, unless you must.
+It may not appeal to you, but it is better to follow a suboptimal convention than use one that may be (subjectively) better but used by no one else.
+
+The templating engine will split the file into parts and process the code using Python.
+It also provides a function called `use()` that includes code into the document from the subdirectory `.pet`.
+This is where you can store the small code snippets.
+
+In this example repository, we currently have three such code snippets:
+
+1. `counters.py` that helps you to have numbered chapters in a markdown document
+2.  `include.py` to read and include files into the document
+3. `text.py` to define text used repeatedly in the document multiple times.
+
+To demonstrate the use of `include`, here is code for `text.py` included using `include.py`
+
+```
+class text:
+    """Handles the storage and printing of a text value.
+
+    This class allows storing a string value and provides a callable
+    instance to output the stored text. The callable behavior ensures
+    the text is printed directly upon invocation.
+
+    Attributes:
+        text (str): The string content to be stored and printed.
+    """
+    def __init__(self, text):
+        self.text = text
+
+    def __call__(self, *args, **kwargs):
+        print(self.text,end='')
+
+```
+
+The text that included this is
+
+```
+{%use('include')
+include(".pet/text.py") %}
+
+
+```
+
+

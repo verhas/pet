@@ -19,7 +19,9 @@ The author of this document has created several tools over the years, which may 
 In this document, we’ll answer key questions about PET:
 
 *  What is PET?
+
 *  What are the issues that PET solves?
+
 *  How to Apply PET in the Most Effective Ways.
 
 ## 1.1 What is PET?
@@ -77,30 +79,67 @@ Outdated docs erode user confidence. PET helps rebuild trust by ensuring accurac
 
 ##  How to Apply PET in the Most Effective Ways.
 
-To apply PET effectively, aim for clarity, maintainability, and reduced manual work.
-Here are the key strategies:
+To apply PET most effectively, the goal should always be clarity, maintainability, and reduction of manual effort. Here are key strategies:
 
-1. **Use a consistent templating engine**
-Choose one appropriate for your environment—Jamal, Jinja2, or even a simple custom engine like in this document.
-Consistency improves maintainability and onboarding.
+1. Use a consistent templating engine
 
-2. **Externalize the changeable**
-Move frequently changing elements (code, config keys, version numbers) out of the document body.
-Reference them with PET macros that fetch the current value.
+Choose a text templating system suitable for your environment.
+You can use Jamal, Jinja2, or even a custom processor, like in this document.
+Consistency in tooling makes maintenance and onboarding easier.
 
-3. **Integrate PET into the build process**
-Add PET rendering to your CI/CD or documentation build pipeline.
-This ensures documents stay up to date automatically.
+2. Externalize the changeable
 
-4. **Use PET selectively**
-Not all content benefits from automation. Use PET where it reduces redundancy and saves time.
-Avoid unnecessary complexity.
+Move all dynamic or frequently changing content (e.g., code samples, config keys, version numbers) out of the static document.
+Reference them through PET macros that fetch the current value automatically.
 
-5. **Validate the output**
-Even automated documentation requires review.
-Add validation steps to ensure rendered output is complete, correct, and clear.
+3. Integrate PET processing into the build
 
-## 1.3 PET the Simplest Way
+Integrate the PET-to-markup transformation into your CI/CD or documentation build pipeline.
+This ensures up-to-date documents without requiring manual intervention in separate steps.
+
+4. Use PET selectively
+
+Not all parts of a document benefit from automation. Use PET where redundancy is a risk or where automation yields significant time savings. Avoid adding complexity for its own sake.
+
+5. Validate the output
+
+Automated documentation still needs review. Add validation steps to check that the final rendered documents are complete, readable, and consistent with expectations.
+
+## 1.3 PET the simplest way
+
+This document and the repository are an example of how to use PET with minimal tooling.
+The author of this document created Jamal and other similar tools with limited effort.
+Jamal, or Pyama, are usable and professional tools, but the starting threshold seems to be too high.
+There is a very limited user base for those tools.
+
+It does not mean, however, that PET as a general concept cannot be used.
+This repository contains a minimalistic Python script of less than 100 lines that implements the simplest templating ever.
+This is enough to use PET.
+
+Include your Python code in the `XYZ.md.pet` document between `{%` and `%}` strings.
+Create simple libraries, such as those found in this repository's `.pet` directory.
+The templating provides a function `use()` to include these classes and definitions into your document.
+
+To get the `XYZ.md` you can run
+
+```
+python3 pet.py XYZ.md.pet XYZ.md
+```
+
+or even
+
+```
+fswatch -o README.md.pet | xargs -n1 -I{} sh -c 'echo "File changed, regenerating..." && python3 pet.py XYZ.md.pet XYZ.md'
+```
+
+to have a constant running background process while you edit your `md.pet` file.
+
+*NOTE:* You can use any format, not only Markdown.
+
+Currently, there are two "macro" classes in this directory.
+One can be used to define texts and then use them.
+The other one can be used to number sections in Markdown documents.
+Later, you may find other simple tools in this repository.
 
 This repository and document illustrate how PET can be applied with minimal tooling.
 The author created Jamal and similar tools requiring limited effort.
@@ -110,8 +149,5 @@ However, the concept of PET is not limited to these tools.
 This repository contains a minimal Python script—less than 100 lines—that implements a very basic template processor.
 This is enough to start using PET.
 
-Include Python code in your `XYZ.md.pet` file between `<!-- ERROR executing code block: invalid syntax (<string>, line 1) -->` markers.
-Create small reusable libraries, as seen in the `.pet` directory.
-The `use()` function includes these resources into your PET document.
+## 1.4 Summary
 
-To generate your output file `XYZ.md`, use:
