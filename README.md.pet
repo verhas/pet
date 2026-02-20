@@ -133,13 +133,13 @@ The templating provides a function `use()` to include these classes and definiti
 To get the `XYZ.md` you can run
 
 ```
-python3 pet.py XYZ.md.pet XYZ.md
+pet XYZ.md.pet XYZ.md
 ```
 
 or even
 
 ```
-fswatch -o README.md.pet | xargs -n1 -I{} sh -c 'echo "File changed, regenerating..." && python3 pet.py XYZ.md.pet XYZ.md'
+fswatch -o README.md.pet | xargs -n1 -I{} sh -c 'echo "File changed, regenerating..." && pet XYZ.md.pet XYZ.md'
 ```
 
 to have a constant running background process while you edit your `md.pet` file.

@@ -92,7 +92,7 @@ if __name__ == "__main__":
     counter = ChapterCounter()
     
     # Main chapters
-    print(counter.chapter())  # # 1
+    print(counter())  # # 1
     print("Introduction content here...\n")
     
     print(counter.chapter())  # # 2

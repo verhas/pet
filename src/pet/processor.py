@@ -101,21 +101,3 @@ def process_template(input_file, output_file):
     except Exception as e:
         print(f"Error processing file: {str(e)}")
         sys.exit(1)
-
-
-def main():
-    """Main function to handle command line arguments."""
-    if len(sys.argv) != 3:
-        print("Usage: python template_processor.py <input_file> <output_file>")
-        print("\nExample:")
-        print("  python template_processor.py template.txt output.txt")
-        sys.exit(1)
-
-    input_file = sys.argv[1]
-    output_file = sys.argv[2]
-
-    process_template(input_file, output_file)
-
-
-if __name__ == "__main__":
-    main()

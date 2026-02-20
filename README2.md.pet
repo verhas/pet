@@ -6,7 +6,7 @@ Using this tool, PET may stand as an abbreviation for Python Enhanced Text.
 
 ## What is PET when it is Python Enhanced Text
 
-This repository contains `pet.py`, which is a minimalistic template engine written in Python.
+This repository contains the `pet` package, which is a minimalistic template engine written in Python.
 
 It is so minimalistic that it was written 2025-06-30 using Claude and the following prompt:
 
@@ -16,9 +16,9 @@ Later I added
 
 >I want to add a method "use" to the file template_processor.py that I can use in the processed documents to include files from the directory ".pet" (Python Enhanced Text)
 
-As you can see that way a PET document is nothing but a preprocessed Markdown, Asccidoc, APT or just any markup format, where you can mix the Python code into the text.
+As you can see that way a PET document is nothing but a preprocessed Markdown, Asciidoc, APT or just any markup format, where you can mix the Python code into the text.
 There is no magic in that.
-The real knowledge is how to organize the python code, what to have inside the document, and what to implement as pure Python code in the `.pet` directory.
+The real knowledge is how to organize the Python code, what to have inside the document, and what to implement as pure Python code in the `.pet` directory.
 
 ## How to use PET
 
@@ -27,18 +27,18 @@ We will use this name in this document, as it is the name of this very document.
 The command line
 
 ```
-python3 pet.py README2.md.pet README2.md
+pet README2.md.pet README2.md
 ```
 
 will generate the `README2.md`, which is an output file in this case.
-You should never edit or modify the output file manually, as you may lose the changes when executing the next time `pet.py`.
+You should never edit or modify the output file manually, as you may lose the changes when executing `pet` next time.
 
 The `README2.md.pet` will contain your document intermixed with Python code.
 The Python code is between {% print("`{%`",end='')%} and `%}` strings.
 
 >**NOTE:** You may use any different delimiters.
 {% print("`{%`",end='')%} and `%}` are the delimiters that proved to be the best during many years of use of PET using Asciidoc and Markdown.
-If you intend to use a different delimiter pair, you can modify your copy of `pet.py`.
+If you intend to use a different delimiter pair, you can modify your copy of `src/pet/processor.py`.
 Don't do it, unless you must.
 It may not appeal to you, but it is better to follow a suboptimal convention than use one that may be (subjectively) better but used by no one else.
 

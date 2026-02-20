@@ -1,6 +1,3 @@
-import re
-
-
 def include(filename):
     """
     Reads a file and prints lines.
