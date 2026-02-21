@@ -3,7 +3,7 @@ class ChapterCounter:
     A hierarchical counter for numbering chapters in documents with Markdown formatting.
     
     Methods:
-    - chapter(): Returns formatted chapter number with appropriate # prefix
+    - chapter(): Returns formatted chapter number with an appropriate # prefix
     - open(): Opens a new sublevel starting at 1
     - close(): Closes the current sublevel
     """
@@ -32,8 +32,8 @@ class ChapterCounter:
         # Create the markdown header with appropriate number of # characters
         level = len(self.levels)
         header_prefix = "#" * level
-        
-        print( f"{header_prefix} {chapter_number}", end = '')
+
+        return f"{header_prefix} {chapter_number}"
     
     def open(self):
         """

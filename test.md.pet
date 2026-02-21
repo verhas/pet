@@ -9,7 +9,7 @@ this is a text
 {%ch.open()%}
 
 {%ch.chapter()%} What is apple in Hungarian
-{%ch.chapter()%} What is banane in Hungarian
+{%ch.chapter()%} What is banana in Hungarian
 {%ch.chapter()%} What is pineapple in Hungarian
 {%ch.close() %}
 

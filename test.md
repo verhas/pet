@@ -5,7 +5,7 @@ this is a text
 
 
 ## 1.1 What is apple in Hungarian
-## 1.2 What is banane in Hungarian
+## 1.2 What is banana in Hungarian
 ## 1.3 What is pineapple in Hungarian
 
 

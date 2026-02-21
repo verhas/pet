@@ -45,9 +45,90 @@ def test_error_in_code_block_becomes_comment(tmp_path, monkeypatch):
     assert "After" in content
 
 
+def test_out_helper(tmp_path, monkeypatch):
+    monkeypatch.chdir(ROOT)
+    t = tmp_path / "in.pet"
+    t.write_text("{% out('hello') %}")
+    out = tmp_path / "out.txt"
+    process_template(str(t), str(out))
+    assert out.read_text() == "hello"
+
+
+def test_out_composition(tmp_path, monkeypatch):
+    monkeypatch.chdir(ROOT)
+    t = tmp_path / "in.pet"
+    t.write_text("{% use('number'); n=number(); out(n('alma')) %}")
+    out = tmp_path / "out.txt"
+    process_template(str(t), str(out))
+    assert out.read_text() == "1 alma"
+
+
+def test_doc_pipe(tmp_path, monkeypatch):
+    monkeypatch.chdir(ROOT)
+    t = tmp_path / "in.pet"
+    t.write_text("{% doc | 'hello' %}")
+    out = tmp_path / "out.txt"
+    process_template(str(t), str(out))
+    assert out.read_text() == "hello"
+
+
+def test_doc_pipe_chained(tmp_path, monkeypatch):
+    monkeypatch.chdir(ROOT)
+    t = tmp_path / "in.pet"
+    t.write_text("{% doc | 'hello' | ' world' %}")
+    out = tmp_path / "out.txt"
+    process_template(str(t), str(out))
+    assert out.read_text() == "hello world"
+
+
+def test_doc_pipe_composition(tmp_path, monkeypatch):
+    monkeypatch.chdir(ROOT)
+    t = tmp_path / "in.pet"
+    t.write_text("{% use('number'); n=number(); doc | n('alma') %}")
+    out = tmp_path / "out.txt"
+    process_template(str(t), str(out))
+    assert out.read_text() == "1 alma"
+
+
+def test_doc_pipe_none_is_silent(tmp_path, monkeypatch):
+    monkeypatch.chdir(ROOT)
+    t = tmp_path / "in.pet"
+    t.write_text("before{% doc | None %}after")
+    out = tmp_path / "out.txt"
+    process_template(str(t), str(out))
+    assert out.read_text() == "beforeafter"
+
+
 def test_missing_input_exits(tmp_path):
     with pytest.raises(SystemExit):
         process_template("no_such_file.pet", str(tmp_path / "out.txt"))
+
+
+def test_use_wildcard_loads_all(tmp_path, monkeypatch):
+    monkeypatch.chdir(ROOT)
+    t = tmp_path / "in.pet"
+    t.write_text("{% use('*'); n=number(); out(n('x')) %}")
+    out = tmp_path / "out.txt"
+    process_template(str(t), str(out))
+    assert out.read_text() == "1 x"
+
+
+def test_use_prefix_wildcard(tmp_path, monkeypatch):
+    monkeypatch.chdir(ROOT)
+    t = tmp_path / "in.pet"
+    t.write_text("{% use('numb*'); n=number(); out(n('x')) %}")
+    out = tmp_path / "out.txt"
+    process_template(str(t), str(out))
+    assert out.read_text() == "1 x"
+
+
+def test_use_wildcard_no_match(tmp_path, monkeypatch):
+    monkeypatch.chdir(ROOT)
+    t = tmp_path / "in.pet"
+    t.write_text("{% use('zzz*') %}")
+    out = tmp_path / "out.txt"
+    process_template(str(t), str(out))
+    assert "ERROR" in out.read_text()
 
 
 def test_snippet_integration(tmp_path, monkeypatch):

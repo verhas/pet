@@ -62,11 +62,10 @@ def test_unterminated_snippet(tmp_path):
         Snippet(str(tmp_path))
 
 
-def test_call_prints_snippet(tmp_path, capsys):
+def test_call_returns_snippet(tmp_path):
     (tmp_path / "code.py").write_text("# snippet hi\nhello\n# end snippet\n")
     s = Snippet(str(tmp_path))
-    s("hi")
-    assert "hello" in capsys.readouterr().out
+    assert "hello" in s("hi")
 
 
 def test_str_and_repr(tmp_path):

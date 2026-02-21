@@ -4,8 +4,7 @@
 
 Here is the content of the snippet:
 
- this is a sample snip.pet content
-
+1 this is a sample snip.pet content...
 
 This is after the snip.pet included.
 

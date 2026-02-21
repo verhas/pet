@@ -8,6 +8,28 @@ import sys
 import re
 import io
 from contextlib import redirect_stdout, redirect_stderr
+from pathlib import Path
+
+
+class _Doc:
+    """
+    Document sink for use in PET templates.
+
+    Provides the ``|`` operator as a concise way to write values into the
+    document.  ``doc | value`` prints ``str(value)`` without a trailing
+    newline and returns ``doc`` so calls can be chained::
+
+        doc | ch() | " Introduction"
+        doc | n(label())
+    """
+
+    def __or__(self, value):
+        if value is not None:
+            print(str(value), end='')
+        return self
+
+
+doc = _Doc()
 
 
 def process_template(input_file, output_file):
@@ -25,30 +47,38 @@ def process_template(input_file, output_file):
 
         def use(what):
             """
-            Executes a Python script stored inside a specific `.pet` directory.
+            Execute one or more macro files from the ``.pet`` directory.
 
-            This function dynamically reads and executes a Python file based on the provided
-            filename. The file is located in the `.pet` directory relative to the current
-            working directory. Use this function with caution, as dynamically executing
-            code can pose a security risk if the source is not trusted.
+            ``what`` is a macro name or a glob pattern (without the ``.py``
+            extension).  Wildcards follow standard shell conventions::
 
-            :param what: Name of the script (without the `.py` extension) located within
-                the `.pet` folder.
+                use('number')       # load a single macro
+                use('*')            # load all macros
+                use('inclu*')       # load every macro whose name starts with 'inclu'
+
+            :param what: Macro name or glob pattern (without ``.py`` extension).
             :type what: str
             """
-            try:
-                with open(f".pet/{what}.py", 'r', encoding='utf-8') as f:
-                    code = f.read()
-                exec(code, exec_namespace)
-            except FileNotFoundError:
-                print(f"<!-- ERROR: File '.pet/{what}.py' not found -->")
-            except Exception as e:
-                print(f"<!-- ERROR executing .pet/{what}.py: {str(e)} -->")
+            matches = sorted(Path('.pet').glob(f'{what}.py'))
+            if not matches:
+                print(f"<!-- ERROR: No macro matching '{what}' found in .pet/ -->")
+                return
+            for path in matches:
+                try:
+                    exec(path.read_text(encoding='utf-8'), exec_namespace)
+                except Exception as e:
+                    print(f"<!-- ERROR executing .pet/{path.name}: {str(e)} -->")
+
+        def out(*args):
+            """Write arguments to the document without a trailing newline."""
+            print(*args, sep='', end='')
 
         # Create a namespace for code execution
         exec_namespace = {
             '__builtins__': __builtins__,
-            'use': use,  # Make the use function available to the template code
+            'use': use,   # Make the use function available to the template code
+            'out': out,   # Write to the document without a trailing newline
+            'doc': doc,   # Document sink: doc | value writes value to the document
             # Add any global variables you want available to the template code
         }
 

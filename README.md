@@ -1,13 +1,13 @@
 
-# 1 Program Enhanced Text (PET) 1.0.0
+# 1 Program Enhanced Text (PET) 1.0.0-SNAPSHOT
 
 Program Enhanced Text (PET) is not a program.
 It is more of a methodology.
 Its aim is to create maintainable documentation using lightweight markup while minimizing manual effort.
-After reading this short readme, you’ll see that PET doesn’t introduce anything radically new.
+After reading this short readme, you'll see that PET doesn't introduce anything radically new.
 Instead, it leverages existing tools in the simplest possible way to improve documentation quality.
 
-Some may say PET is just text templating—and they wouldn’t be wrong.
+Some may say PET is just text templating—and they wouldn't be wrong.
 Others may describe it as text with macros.
 Still others might point to other tools with similar capabilities.
 
@@ -16,7 +16,7 @@ Choose the tool that best suits your purpose and context.
 
 The author of this document has created several tools over the years, which may be used if they best fit your needs.
 
-In this document, we’ll answer key questions about PET:
+In this document, we'll answer key questions about PET:
 
 *  What is PET?
 
@@ -33,7 +33,7 @@ Its core principle:
 
 Consider this simple example: including code samples in documentation.
 Traditionally, we copy-paste the code into the document and apply formatting.
-When the code changes, we’re supposed to update the document—but often we forget.
+When the code changes, we're supposed to update the document—but often we forget.
 Outdated samples remain, causing confusion.
 
 With PET, the document is written in a PET-enhanced format—one step before the final rendered version.
@@ -48,7 +48,7 @@ While the code sample example is common, many other things can be automated:
 * Lists of features from source code
 * And more
 
-If the information already exists somewhere, humans shouldn’t recreate it manually.
+If the information already exists somewhere, humans shouldn't recreate it manually.
 
 Sources can vary.
 The sample might come from the documented program, from other parts of the document, or even from the environment.
@@ -129,10 +129,12 @@ pet XYZ.md.pet XYZ.md
 or even
 
 ```
-fswatch -o README.md.pet | xargs -n1 -I{} sh -c 'echo "File changed, regenerating..." && pet XYZ.md.pet XYZ.md'
+pet watch XYZ.md.pet XYZ.md
 ```
 
 to have a constant running background process while you edit your `md.pet` file.
+This command watches the file for changes and regenerates the output automatically.
+It works on all platforms without any additional tools.
 
 *NOTE:* You can use any format, not only Markdown.
 
@@ -150,4 +152,5 @@ This repository contains a minimal Python script—less than 100 lines—that im
 This is enough to start using PET.
 
 ## 1.4 Summary
+
 

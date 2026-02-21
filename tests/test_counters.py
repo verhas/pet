@@ -1,60 +1,51 @@
-import io
 import pytest
-from contextlib import redirect_stdout
 from pet.macros.counters import ChapterCounter
-
-
-def output(fn):
-    buf = io.StringIO()
-    with redirect_stdout(buf):
-        fn()
-    return buf.getvalue()
 
 
 def test_first_chapter():
     c = ChapterCounter()
-    assert output(c) == "# 1"
+    assert c() == "# 1"
 
 
 def test_increments():
     c = ChapterCounter()
-    output(c)
-    assert output(c) == "# 2"
-    assert output(c) == "# 3"
+    c()
+    assert c() == "# 2"
+    assert c() == "# 3"
 
 
 def test_nested_section():
     c = ChapterCounter()
-    output(c)      # # 1
+    c()      # # 1
     c.open()
-    assert output(c) == "## 1.1"
-    assert output(c) == "## 1.2"
+    assert c() == "## 1.1"
+    assert c() == "## 1.2"
 
 
 def test_close_returns_to_parent():
     c = ChapterCounter()
-    output(c)      # # 1
+    c()      # # 1
     c.open()
-    output(c)      # ## 1.1
+    c()      # ## 1.1
     c.close()
-    assert output(c) == "# 2"
+    assert c() == "# 2"
 
 
 def test_three_levels():
     c = ChapterCounter()
-    output(c)      # # 1
+    c()      # # 1
     c.open()
-    output(c)      # ## 1.1
+    c()      # ## 1.1
     c.open()
-    assert output(c) == "### 1.1.1"
+    assert c() == "### 1.1.1"
 
 
 def test_reset():
     c = ChapterCounter()
-    output(c)
-    output(c)
+    c()
+    c()
     c.reset()
-    assert output(c) == "# 1"
+    assert c() == "# 1"
 
 
 def test_close_at_root_raises():
@@ -74,13 +65,20 @@ def test_get_current_level():
 
 def test_get_current_numbers():
     c = ChapterCounter()
-    output(c)
+    c()
     assert c.get_current_numbers() == (1,)
     c.open()
-    output(c)
+    c()
     assert c.get_current_numbers() == (1, 1)
 
 
 def test_chapter_alias():
     c = ChapterCounter()
-    assert output(c.chapter) == output(ChapterCounter())
+    assert c() == c.chapter()[:2] + "1"
+
+
+def test_composable_with_out(capsys):
+    c = ChapterCounter()
+    result = c()
+    print(result, end='')
+    assert capsys.readouterr().out == "# 1"

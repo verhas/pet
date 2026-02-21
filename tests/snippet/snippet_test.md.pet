@@ -2,12 +2,14 @@
 
 {%
 use('snippet')
+use('number')
 snippets = Snippet("tests/snippet")
+n = number()
  %}
 
 Here is the content of the snippet:
 
-{% snippets('sample') %}
+{% doc | n(snippets('sample')) %}
 
 This is after the snip.pet included.
 

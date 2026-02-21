@@ -129,14 +129,15 @@ class Snippet:
 
     def __call__(self, name: str):
         """
-        print out a snippet by its name.
+        Return a snippet by its name.
 
         Args:
             name (str): The name of the snippet to retrieve
 
+        Returns:
+            Optional[str]: The snippet content if found, None otherwise
         """
-
-        print(self.get(name), end='')
+        return self.get(name)
 
     def names(self) -> list:
         """

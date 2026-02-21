@@ -52,24 +52,60 @@ In this example repository, we currently have three such code snippets:
 2.  `include.py` to read and include files into the document
 3. `text.py` to define text used repeatedly in the document multiple times.
 
-To demonstrate the use of `include`, here is code for `text.py` included using `include.py`
+To demonstrate the use of `include`, here is the code for `number.py` included using `include.py`
 
 ```
-class text:
-    """Handles the storage and printing of a text value.
-
-    This class allows storing a string value and provides a callable
-    instance to output the stored text. The callable behavior ensures
-    the text is printed directly upon invocation.
-
-    Attributes:
-        text (str): The string content to be stored and printed.
+class number:
     """
-    def __init__(self, text):
-        self.text = text
+    Sequential number formatter for lists and enumerations.
 
-    def __call__(self, *args, **kwargs):
-        print(self.text,end='')
+    Maintains an internal counter and returns zero-padded numbers,
+    optionally followed by text. Designed for composition with other
+    macros — returns a string rather than printing it.
+
+    Example::
+
+        use('number')
+        use('text')
+        n = number()
+        label = text('alma')
+        out(n(label()))   # -> "001 alma"
+        out(n())          # -> "002"
+    """
+
+    def __init__(self, width=3, start=1):
+        """
+        Initialize the number formatter.
+
+        :param width: Width of the zero-padded number field (default: 3).
+        :type width: int
+        :param start: Starting value of the counter (default: 1).
+        :type start: int
+        """
+        self.count = start - 1
+        self.width = width
+
+    def __call__(self, text=''):
+        """
+        Return the next formatted number, optionally followed by text.
+
+        :param text: Optional text to append after the number.
+        :type text: str
+        :returns: Formatted string like ``"001 alma"`` or just ``"001"``.
+        :rtype: str
+        """
+        self.count += 1
+        num = str(self.count).zfill(self.width)
+        return f"{num} {text}" if text else num
+
+    def reset(self, start=1):
+        """
+        Reset the counter.
+
+        :param start: Value to reset to (default: 1).
+        :type start: int
+        """
+        self.count = start - 1
 
 ```
 
@@ -77,7 +113,7 @@ The text that included this is
 
 ```
 {%use('include')
-include(".pet/text.py") %}
+doc | include(".pet/number.py") %}
 
 
 ```
