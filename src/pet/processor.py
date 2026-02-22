@@ -45,6 +45,7 @@ def process_template(input_file, output_file):
         with open(input_file, 'r', encoding='utf-8') as f:
             content = f.read()
 
+        # snippet use_function
         def use(what):
             """
             Execute one or more macro files from the ``.pet`` directory.
@@ -68,6 +69,7 @@ def process_template(input_file, output_file):
                     exec(path.read_text(encoding='utf-8'), exec_namespace)
                 except Exception as e:
                     print(f"<!-- ERROR executing .pet/{path.name}: {str(e)} -->")
+        # end snippet
 
         def out(*args):
             """Write arguments to the document without a trailing newline."""

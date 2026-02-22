@@ -1,5 +1,4 @@
 import argparse
-from pathlib import Path
 from pet.cli import cmd_init
 
 
@@ -16,11 +15,17 @@ def test_init_creates_pet_directory(tmp_path, monkeypatch):
 def test_init_copies_macros(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     cmd_init(make_init_args())
-    assert (tmp_path / ".pet" / "counters.py").exists()
+    assert (tmp_path / ".pet" / "chapter.py").exists()
     assert (tmp_path / ".pet" / "snippet.py").exists()
     assert (tmp_path / ".pet" / "include.py").exists()
     assert (tmp_path / ".pet" / "number.py").exists()
     assert (tmp_path / ".pet" / "pipe.py").exists()
+    assert (tmp_path / ".pet" / "data" / "xml.py").exists()
+    assert (tmp_path / ".pet" / "data" / "yaml.py").exists()
+    assert (tmp_path / ".pet" / "data" / "json.py").exists()
+    assert (tmp_path / ".pet" / "data" / "toml.py").exists()
+    assert (tmp_path / ".pet" / "data" / "properties.py").exists()
+    assert (tmp_path / ".pet" / "data" / "env.py").exists()
 
 
 def test_init_creates_status_directory(tmp_path, monkeypatch):

@@ -1,0 +1,14 @@
+{
+  "name": "my-app",
+  "version": "1.0.0",
+  "description": "A sample application",
+  "scripts": {
+    "test": "jest",
+    "build": "webpack"
+  },
+  "dependencies": [
+    {"name": "lodash", "version": "4.17.21"},
+    {"name": "express", "version": "4.18.0"}
+  ],
+  "tags": ["web", "api", "rest"]
+}

@@ -3,7 +3,7 @@
 {%
 use('snippet')
 use('number')
-snippets = Snippet("tests/snippet")
+snippets = snippet("tests/snippet")
 n = number()
  %}
 

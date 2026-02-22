@@ -24,7 +24,7 @@ class number:
 
         use('snippet')
         use('number')
-        snippets = Snippet("src")
+        snippets = snippet("src")
         n = number(fmt="{:3d} ")
         doc | n(snippets('main'))   # -> numbered lines of the snippet
     """

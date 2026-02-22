@@ -1,0 +1,20 @@
+server:
+  host: localhost
+  port: 8080
+
+database:
+  url: jdbc:postgresql://localhost/mydb
+  credentials:
+    username: admin
+    password: secret
+
+dependencies:
+  - name: requests
+    version: 2.28.0
+  - name: flask
+    version: 2.3.0
+
+tags:
+  - web
+  - api
+  - rest

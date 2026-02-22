@@ -1,0 +1,22 @@
+{%
+use('chapter')
+
+ch = chapter()
+%}
+this is a text
+
+{%doc | ch.chapter()%} What are the names of the fruits in Hungarian?
+{%ch.open()%}
+
+{%doc | ch.chapter()%} What is apple in Hungarian
+{%doc | ch.chapter()%} What is banana in Hungarian
+{%doc | ch.chapter()%} What is pineapple in Hungarian
+{%ch.close() %}
+
+
+{%doc | ch.chapter()%} What are the names of animals in German
+{%ch.open()%}
+{%doc | ch.chapter()%} What is dog in German
+{%doc | ch.chapter()%} What is fish in German
+{%doc | ch.chapter()%} What is cucumber in Aleman
+{%ch.close()%}

@@ -3,7 +3,7 @@ import re
 from typing import Dict, Optional
 
 
-class Snippet:
+class snippet:
     """
     A class to recursively scan files in a directory and collect code snippets.
 
@@ -14,7 +14,7 @@ class Snippet:
 
     def __init__(self, directory: str):
         """
-        Initialize the Snippet and scan the directory for snippets.
+        Initialize the snippet, and scan the directory for snippets.
 
         Args:
             directory (str): The directory path to scan recursively
@@ -54,21 +54,21 @@ class Snippet:
         while i < len(lines):
             line = lines[i].strip()
 
-            # Check for snippet start pattern
+            # Check for 'snippet' 'start' pattern
             snippet_match = self._match_snippet_start(line)
             if snippet_match:
                 snippet_name = snippet_match
                 snippet_content = []
-                i += 1  # Move to next line after snippet declaration
+                i += 1  # Move to next line after 'snippet' declaration
 
-                # Collect lines until we find the end snippet marker
+                # Collect lines until we find the end 'snippet' marker
                 while i < len(lines):
                     line = lines[i]
 
                     if self._match_snippet_end(line.strip()):
                         if self.snippets.get(snippet_name):
                             raise ValueError(f"Snippet '{snippet_name}' already exists in the file '{file_path}'")
-                        # Found end marker, store the snippet
+                        # Found end marker, store the entry
                         self.snippets[snippet_name] = ''.join(snippet_content)
                         break
                     else:
@@ -84,13 +84,13 @@ class Snippet:
 
     def _match_snippet_start(self, line: str) -> Optional[str]:
         """
-        Check if a line matches the snippet start pattern and extract the name.
+        Check if a line matches the 'snippet' 'start' pattern and extract the name.
 
         Args:
             line (str): The line to check
 
         Returns:
-            Optional[str]: The snippet name if found, None otherwise
+            Optional[str]: The 'snippet' name if found, None otherwise
         """
         # Pattern: any characters, "snippet", whitespace, identifier, any characters
         # The identifier should be a valid Python identifier (letters, digits, underscore)
@@ -103,7 +103,7 @@ class Snippet:
 
     def _match_snippet_end(self, line: str) -> bool:
         """
-        Check if a line matches the snippet end pattern.
+        Check if a line matches the 'snippet' 'end' pattern.
 
         Args:
             line (str): The line to check
@@ -117,46 +117,46 @@ class Snippet:
 
     def get(self, name: str) -> Optional[str]:
         """
-        Get a snippet by its name.
+        Get a 'snippet' by its name.
 
         Args:
-            name (str): The name of the snippet to retrieve
+            name (str): The name of the 'snippet' to retrieve
 
         Returns:
-            Optional[str]: The snippet content if found, None otherwise
+            Optional[str]: The 'snippet' content if found, None otherwise
         """
         return self.snippets.get(name)
 
     def __call__(self, name: str):
         """
-        Return a snippet by its name.
+        Return a 'snippet' by its name.
 
         Args:
-            name (str): The name of the snippet to retrieve
+            name (str): The name of the 'snippet' to retrieve
 
         Returns:
-            Optional[str]: The snippet content if found, None otherwise
+            Optional[str]: The 'snippet' content if found, None otherwise
         """
         return self.get(name)
 
     def names(self) -> list:
         """
-        Get a list of all available snippet names.
+        Get a list of all available 'snippet' names.
 
         Returns:
-            list: List of snippet names
+            list: List of 'snippet' names
         """
         return list(self.snippets.keys())
 
     def contains(self, name: str) -> bool:
         """
-        Check if a snippet with the given name exists.
+        Check if a 'snippet' with the given name exists.
 
         Args:
-            name (str): The name of the snippet to check
+            name (str): The name of the 'snippet' to check
 
         Returns:
-            bool: True if the snippet exists, False otherwise
+            bool: True if the 'snippet' exists, False otherwise
         """
         return name in self.snippets
 
@@ -171,26 +171,26 @@ class Snippet:
 
     def __str__(self) -> str:
         """String representation of the Snippet."""
-        return f"Snippet(directory='{self.directory}', snippets={len(self.snippets)})"
+        return f"snippet(directory='{self.directory}', snippets={len(self.snippets)})"
 
     def __repr__(self) -> str:
-        """Detailed string representation of the Snippet."""
-        return f"Snippet(directory='{self.directory}', snippets={list(self.snippets.keys())})"
+        """Detailed string representation of the snippet."""
+        return f"snippet(directory='{self.directory}', snippets={list(self.snippets.keys())})"
 
 
 # Example usage
 if __name__ == "__main__":
-    # Example of how to use the Snippet
+    # Example of how to use the snippet
 
     # Create a collector for the current directory
-    collector = Snippet(".")
+    collector = snippet(".")
 
     print(f"Found {collector.size()} snippets")
-    print(f"Snippet names: {collector.names()}")
+    print(f"snippet"+" names: {collector.names()}")
 
     # Get a specific snippet
     if collector.contains("MySnippet"):
         content = collector.get("MySnippet")
-        print(f"MySnippet content:\n{content}")
+        print(f"Mysnippet"+" content:\n{content}")
     else:
-        print("MySnippet not found")
+        print("Mysnippet"+" not found")

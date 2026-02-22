@@ -1,0 +1,19 @@
+[project]
+name = "my-app"
+version = "1.0.0"
+description = "A sample application"
+
+[server]
+host = "localhost"
+port = 8080
+
+[[dependencies]]
+name = "requests"
+version = "2.28.0"
+
+[[dependencies]]
+name = "flask"
+version = "2.3.0"
+
+[tags]
+values = ["web", "api", "rest"]
