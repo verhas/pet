@@ -30,7 +30,7 @@ CB = '%' + '}'
 # These run every time the document is generated.
 # If they fail, the build fails — keeping docs and code in sync is enforced.
 
-_stated_version = "1.0.0"   # ← update this when you cut a release
+_stated_version = "1.0.2"   # ← update this when you cut a release
 if VERSION != _stated_version:
     sys.exit(
         f"\nCONSISTENCY FAILURE in RATIONALE.md.pet\n"
@@ -307,6 +307,51 @@ re-evaluated at generation time from its authoritative source. Consistency
 checks fail the build when prose claims diverge from code reality. The template
 structure makes it explicit — to both human authors and LLM assistants — which
 values are authoritative and where they come from.
+
+{%doc | ch()%} The Template vs. Regeneration Question
+
+A natural question arises: if an LLM can regenerate the final Markdown every
+time something changes, why introduce the extra step of a PET template at all?
+
+The question contains a hidden assumption — that "regenerate" is free. It is
+not.
+
+**Regeneration requires complete context.** For an LLM to produce a correct
+document, it must be given every source file the document references: the
+`pyproject.toml`, the source code, the schema, the configuration. A PET
+template encodes those relationships *once*, permanently, as executable code.
+The next run needs no additional context because the template already knows
+where to find everything. Asking an LLM to regenerate a doc is asking it to
+rediscover those relationships from scratch each time — and to copy the values
+it finds rather than reference them.
+
+**Regeneration is not automated.** A PET template runs in a CI pipeline.
+Nobody has to remember to regenerate anything, identify which documents depend
+on which changed files, or prompt an LLM at the right moment. The template is
+triggered by the same event that changed the source: a commit, a build, a
+release. Regeneration via LLM requires a human in the loop, which reintroduces
+exactly the delay and forgetting that causes documentation drift.
+
+**Snippet correctness is structural, not probabilistic.** When a code example
+is included via a `snippet` marker in the source file, it is *identical* to
+the tested code. An LLM regenerating a document may reproduce a slightly
+outdated version of the same example — the version it last saw in context, or
+a plausible paraphrase of the current one. There is no mechanism to make that
+wrong. With `snippet`, being wrong is structurally impossible: the example is
+the source.
+
+**The diff shows intent, not output.** When a colleague changes a PET template
+in a pull request, the diff shows what changed in the *logic*: a new field was
+added to the data reader, a section was reordered, a consistency check was
+tightened. When LLM-regenerated Markdown is committed, the diff is a wall of
+prose changes with no signal about which are substantive and which are
+stylistic reflows. Code review of documentation becomes meaningful only when
+the thing under review is the template, not the output.
+
+The short answer is: a PET template is worth writing when the document must
+stay correct indefinitely, with no human effort, in the face of a codebase
+that keeps changing. An LLM generating a one-off document is the right tool
+for documents that do not have that requirement.
 
 {%ch.close()%}
 

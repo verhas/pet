@@ -85,7 +85,10 @@ Initialise a project (copies the macro library into `.pet/`):
 
 ```bash
 cd my-project
-pet init
+pet init                  # first-time setup
+pet init                  # safe to re-run — regenerates if macros unchanged, skips if you've edited them
+pet init -f               # force regeneration regardless of local edits
+pet init for_claude       # also installs the pet skill into Claude Code (.claude/)
 ```
 
 Process a template once, or watch it for changes:

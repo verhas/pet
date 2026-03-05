@@ -1,21 +1,51 @@
+import hashlib
 import sys
 import time
 import argparse
-import json
 import shutil
 from pathlib import Path
 from pet.processor import process_template
 
 
+def _pet_hash(pet_dir: Path) -> str:
+    """MD5 of all files under pet_dir (alphabetical, excluding .hash itself)."""
+    md5 = hashlib.md5()
+    for path in sorted(pet_dir.rglob("*")):
+        if path.is_file() and path.name != ".hash":
+            md5.update(str(path.relative_to(pet_dir)).encode())
+            md5.update(path.read_bytes())
+    return md5.hexdigest()
+
+
+def _create_pet_dir(macros_src: Path, dest: Path):
+    shutil.copytree(macros_src, dest,
+                    ignore=shutil.ignore_patterns("__init__.py", "__pycache__"))
+    (dest / ".status").mkdir()
+    (dest / ".hash").write_text(_pet_hash(dest))
+
+
 def cmd_init(args):
     macros_src = Path(__file__).parent / "macros"
     dest = Path(".pet")
+    hash_file = dest / ".hash"
+
     if dest.exists():
-        print("'.pet/' already exists. Skipping.")
+        if args.force:
+            shutil.rmtree(dest)
+            _create_pet_dir(macros_src, dest)
+            print("Forced reinitialisation of '.pet/' directory.")
+        else:
+            stored = hash_file.read_text().strip() if hash_file.exists() else None
+            if stored is None:
+                print("'.pet/' exists with no .hash — skipping (delete it manually or use -f to reinitialise).")
+            elif stored == _pet_hash(dest):
+                shutil.rmtree(dest)
+                _create_pet_dir(macros_src, dest)
+                print("Regenerated '.pet/' with updated macro library.")
+            else:
+                print("'.pet/' has local modifications — skipping (use -f to overwrite).")
     else:
-        shutil.copytree(macros_src, dest,
-                        ignore=shutil.ignore_patterns("__init__.py", "__pycache__"))
-        (dest / ".status").mkdir()
+        _create_pet_dir(macros_src, dest)
         print("Initialized '.pet/' directory with macro library.")
 
     if getattr(args, "target", None) == "for_claude":
@@ -23,23 +53,16 @@ def cmd_init(args):
 
 
 def _install_claude_skill():
-    plugin_dir = Path(".claude") / "plugins" / "pet-doc"
-    plugin_json_path = plugin_dir / ".claude-plugin" / "plugin.json"
-    skill_path = plugin_dir / "skills" / "pet" / "SKILL.md"
+    pkg = Path(__file__).parent
+    skills = [
+        (pkg / "SKILL.md",           Path(".claude") / "skills" / "pet"          / "SKILL.md"),
+        (pkg / "AUTHORING_SKILL.md", Path(".claude") / "skills" / "pet-authoring" / "SKILL.md"),
+    ]
+    for src, dest in skills:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dest)
+        print(f"Installed {dest}")
 
-    plugin_json_path.parent.mkdir(parents=True, exist_ok=True)
-    skill_path.parent.mkdir(parents=True, exist_ok=True)
-
-    plugin_json_path.write_text(json.dumps({
-        "name": "pet-doc",
-        "description": "Program Enhanced Text — documentation automation tool",
-        "version": "1.0.0",
-        "author": {"name": "pet-doc"}
-    }, indent=2))
-
-    skill_src = Path(__file__).parent / "SKILL.md"
-    shutil.copy2(skill_src, skill_path)
-    print(f"Installed pet skill for Claude Code at ./{plugin_dir}")
 
 
 def cmd_watch(args):
@@ -88,6 +111,8 @@ def main():
                                  "Use 'init for_claude' to also install the pet skill into Claude Code.")
     p_init.add_argument("target", nargs="?", choices=["for_claude"],
                         help="'for_claude' also installs the pet skill into Claude Code")
+    p_init.add_argument("-f", "--force", action="store_true",
+                        help="Overwrite .pet/ even if it has local modifications")
 
     w = sub.add_parser("watch", help="Watch a .pet file and reprocess on every change")
     w.add_argument("input", help="Input .pet template file")

@@ -7,8 +7,8 @@ Templates are `.md.pet` files containing `{% ... %}` Python code blocks; PET
 executes them and splices the output into the final document.
 
 - Repo: https://github.com/verhasp/pet
-- PyPI: `pet-doc` (published, current release 1.0.1; local version is 1.0.2
-  with `license = "Apache-2.0"` fix, not yet published)
+- PyPI: `pet-doc` (published release 1.0.1; local working version is 1.0.2,
+  not yet published)
 - Python 3.11+, build backend: Hatchling
 
 ## Key Conventions
@@ -31,6 +31,8 @@ executes them and splices the output into the final document.
 src/pet/
     cli.py              # 'pet' entry point: init / process / watch
     processor.py        # template engine; defines doc, use(), out()
+    SKILL.md            # Claude Code skill: CLI commands (installed by pet init for_claude)
+    AUTHORING_SKILL.md  # Claude Code skill: template authoring (installed by pet init for_claude)
     macros/             # installed macro library (copied to .pet/ on init)
         chapter.py      # chapter counter class
         number.py       # line-numbering class
@@ -43,7 +45,12 @@ src/pet/
             toml.py yaml.py json.py xml.py properties.py env.py
 
 .pet/                   # project-local macro library (mirrors src/pet/macros/)
+    .hash               # MD5 checksum of installed macros (used by pet init)
     (same structure as src/pet/macros/)
+
+.claude/skills/         # Claude Code skills (created by pet init for_claude)
+    pet/SKILL.md
+    pet-authoring/SKILL.md
 
 tests/
     test_chapter.py  test_snippet.py  test_env.py  test_properties.py
@@ -96,20 +103,27 @@ Used as: `{%doc | dedoc(dedent(include(MACRO_DIR + '/data/yaml.py')))%}`
   dependencies installed). Always use `source .venv/bin/activate` before
   running `pytest`; the system Python lacks `pyyaml`.
 - `pyproject.toml` has `version = "1.0.2"` and `license = "Apache-2.0"` —
-  **not yet committed or published**.
-- `MACROGUIDE.md` needs to be regenerated after the `dedoc` bug fixes.
+  **not yet published**.
 - The `.pet/` directory and `.idea/` are untracked (not in `.gitignore` yet).
+- `.pet/` exists but has no `.hash` file (created before the hash feature was
+  added); run `pet init -f` to regenerate it with a hash.
 
 ## Running PET
 
 ```bash
-# Process a template (from project root)
-python3 -c "from src.pet.processor import process_template; process_template('X.md.pet', 'X.md')"
-
-# Or install in dev mode first, then use the CLI directly
+# Install in dev mode (from project root)
+source .venv/bin/activate
 pip install -e .
+
+# Process templates
 pet README.md.pet README.md
 pet MACROGUIDE.md.pet MACROGUIDE.md
+pet RATIONALE.md.pet RATIONALE.md
+
+# Initialise a project
+pet init                  # first-time setup
+pet init -f               # force regeneration ignoring local edits
+pet init for_claude       # also install Claude Code skills into .claude/skills/
 ```
 
 ## Publishing
@@ -121,9 +135,6 @@ python -m twine upload dist/pet_doc-1.0.2*   # uses ~/.pypirc with __token__
 
 ## Open Items
 
-- Regenerate MACROGUIDE.md with the fixed `dedoc` function
-- Commit the current working changes (pyproject.toml version/license, snippet
-  rename, README format note, MACROGUIDE dedoc fixes)
-- Publish 1.0.2 once the above are done
-- `.pet/` should probably be added to `.gitignore` (it is a project-local
-  runtime directory, not source)
+- Commit all current changes and publish 1.0.2
+- `.pet/` and `.claude/` should probably be added to `.gitignore` (project-local
+  runtime directories, not source)

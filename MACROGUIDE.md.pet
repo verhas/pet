@@ -204,7 +204,7 @@ For flat `key → value` formats, skip `_DataNode` and use a plain dict:
 ```python
 {%doc | dedoc(dedent(include(MACRO_DIR + '/data/properties.py')))%}
 ```
-
+do 1,
 **When to extend `_DataNode`:** hierarchical formats where dots in path
 expressions are navigation, not key characters (YAML, JSON, TOML, XML).
 
