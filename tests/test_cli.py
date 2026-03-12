@@ -2,8 +2,8 @@ import argparse
 from pet.cli import cmd_init
 
 
-def make_init_args():
-    return argparse.Namespace()
+def make_init_args(force=False, target=None):
+    return argparse.Namespace(force=force, target=target)
 
 
 def test_init_creates_pet_directory(tmp_path, monkeypatch):
@@ -45,5 +45,16 @@ def test_init_skips_if_already_exists(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     (tmp_path / ".pet").mkdir()
     cmd_init(make_init_args())
-    assert "already exists" in capsys.readouterr().out
+    assert "skipping" in capsys.readouterr().out
     assert not (tmp_path / ".pet" / ".status").exists()
+
+
+def test_init_force_overwrites_existing(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    pet_dir = tmp_path / ".pet"
+    pet_dir.mkdir()
+    (pet_dir / "custom.py").write_text("# user edit")
+    cmd_init(make_init_args(force=True))
+    assert not (pet_dir / "custom.py").exists()
+    assert (pet_dir / "chapter.py").exists()
+    assert "reinitialisation" in capsys.readouterr().out

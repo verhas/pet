@@ -1,6 +1,6 @@
 ---
 name: pet-authoring
-description: This skill should be used when the user wants to "write a pet template", "create a .pet file", "add snippet markers", "use a pet macro", "write a macro", "add line numbers", "include a file in a pet template", "read toml in pet", "read yaml in pet", "use pipe in pet", "number chapters in pet", or asks about pet template syntax, pet code blocks, or how to author pet documents. Also applies whenever editing any file that may have a corresponding .pet source template — always check for a .pet counterpart before modifying a generated output file.
+description: This skill should be used when the user wants to "write a pet template", "create a .pet file", "add snippet markers", "use a pet macro", "write a macro", "add line numbers", "include a file in a pet template", "read toml in pet", "read yaml in pet", "use pipe in pet", "number chapters in pet", or asks about pet template syntax, pet code blocks, pet expression syntax, {{ }} blocks, or how to author pet documents. Also applies whenever editing any file that may have a corresponding .pet source template — always check for a .pet counterpart before modifying a generated output file.
 version: 1.0.0
 ---
 
@@ -27,32 +27,68 @@ Reference for writing `.md.pet` templates and macros for the `pet-doc` tool.
 
 ## Template Syntax
 
-A `.md.pet` file is plain text with Python code blocks delimited by `{%` and `%}`.
-Everything outside the delimiters is copied verbatim to the output.
+A `.md.pet` file is plain text with two kinds of Python blocks:
+
+| Syntax | Purpose |
+|--------|---------|
+| `{% statements %}` | Execute Python — output via `print`, `doc \|`, or `out()` |
+| `{{ expr }}` | Evaluate an expression and write its value directly |
+
+`{{ expr }}` is the preferred shorthand for single values — no `doc |` needed:
 
 ```
-{% python code here %}
+{{ VERSION }}
+{{ ch() }} Introduction
+{{ n(src('main_loop')) }}
+```
+
+Multi-statement setup blocks still use `{% %}`:
+
+```
+{%
+use('chapter')
+ch = chapter()
+%}
 ```
 
 To write the PET delimiters literally inside a code block (e.g. to document PET itself),
 build them with string concatenation to avoid confusing the processor:
 
 ```python
-OB = '{' + '%'   # opening delimiter
-CB = '%' + '}'   # closing delimiter
+OB = '{' + '%'   # {%
+CB = '%' + '}'   # %}
+OE = '{' + '{'   # {{
+CE = '}' + '}'   # }}
 ```
 
-Then use `{%doc | OB%}` and `{%doc | CB%}` in the template body.
+Then use `{{ OB }}`, `{{ CB }}`, `{{ OE }}`, `{{ CE }}` in the template body.
 
 ---
 
 ## Writing to the Document
 
-Two mechanisms write output:
+**Always prefer `{{ expr }}`** — it is the clearest and most concise form:
+
+```
+{{ VERSION }}
+{{ ch() }} Introduction
+{{ n(dedent(include('src/core.py'))) }}
+```
+
+Only reach for `doc |` or `out()` when `{{ }}` cannot express what you need:
+
+| Situation | Use instead | Example |
+|-----------|-------------|---------|
+| Writing multiple values in sequence without newlines | `doc \|` | `doc \| prefix \| value \| suffix` |
+| Output with no trailing newline, mid-statement | `out(value)` | `out("• ")` inside a loop |
+| Chaining transformations inline with side effects | `doc \|` | `doc \| ch() \| " " \| title` |
+
+The full set of output mechanisms:
 
 | Expression | Effect |
 |---|---|
-| `doc \| value` | Writes `str(value)` to the document; chainable: `doc \| a \| b` |
+| `{{ expr }}` | **Preferred.** Evaluates expression, writes `str(result)` |
+| `doc \| value` | Writes `str(value)`; chainable: `doc \| a \| b \| c` |
 | `out(value)` | Writes `str(value)` without a trailing newline |
 
 `doc` is a `_Doc` instance injected into every template's namespace by the processor.
@@ -87,9 +123,9 @@ use('**/*')             # loads everything recursively
 use('chapter')
 ch = chapter()          # default: "#" prefix, " " separator
 
-{% doc | ch() %}        # emits "# 1", "# 2", …
-{% doc | ch.open() %}   # push a level: "## 1.1", "### 1.1.1", …
-{% doc | ch.close() %}  # pop a level
+{{ ch() }}        # emits "# 1", "# 2", …
+{{ ch.open() }}   # push a level: "## 1.1", "### 1.1.1", …
+{{ ch.close() }}  # pop a level
 ```
 
 Constructor options: `chapter(header_prefix="#", sep=" ")`
@@ -100,7 +136,7 @@ Constructor options: `chapter(header_prefix="#", sep=" ")`
 use('number')
 n = number(fmt="{:3d}  ")   # configure once
 
-{% doc | n(some_text) %}    # prefixes each line with a counter
+{{ n(some_text) }}    # prefixes each line with a counter
 ```
 
 Constructor options: `number(start=1, step=1, fmt="{} ")`
@@ -110,20 +146,20 @@ Counter persists across calls — useful for numbering a whole document sequenti
 
 ```python
 use('include')
-{% doc | include('src/app.py') %}
+{{ include('src/app.py') }}
 ```
 
 Returns the file contents as a string. Compose with `dedent` and `number`:
 
 ```python
-{% doc | n(dedent(include('src/app.py'))) %}
+{{ n(dedent(include('src/app.py'))) }}
 ```
 
 ### dedent — strip indentation
 
 ```python
 use('dedent')
-{% doc | dedent(include('src/nested.py')) %}
+{{ dedent(include('src/nested.py')) }}
 ```
 
 Removes the common leading whitespace from all lines and strips trailing
@@ -131,12 +167,31 @@ whitespace per line.
 
 ### snippet — extract named code blocks
 
+The first argument (`source`) can be a directory, a glob pattern, or a list of either:
+
 ```python
 use('snippet')
-src = snippet('src/')       # scan the src/ directory recursively
-
-{% doc | src('my_function') %}   # emit the named snippet
+src = snippet('src/')                          # scan a directory recursively
+src = snippet('src/**/*.py')                   # glob — only Python files
+src = snippet(['src/**/*.py', 'lib/**/*.py'])  # list of globs
+src = snippet(['src/', 'tests/'])              # list of directories
 ```
+
+Use `exclude` to skip files that would cause false positives (e.g. documentation
+files whose prose accidentally matches the snippet marker regex):
+
+```python
+src = snippet('src/', exclude='*.md')               # single glob
+src = snippet('src/', exclude=['*.md', '*.adoc'])   # multiple globs
+```
+
+Emit a named snippet:
+
+```python
+{{ src('my_function') }}
+```
+
+A glob that matches no files is not an error — it simply contributes no snippets.
 
 See the **Snippet Markers** section below for how to annotate source files.
 
@@ -171,14 +226,14 @@ use('number')
 n     = number(fmt="{:3d}  ")
 clean = pipe | dedent | n          # chain with |
 
-{% doc | clean(include('src/core.py')) %}
+{{ clean(include('src/core.py')) }}
 ```
 
 Apply a stage line-by-line with `.on_lines()`:
 
 ```python
 shout = pipe | str.upper
-{% doc | shout.on_lines()(include('words.txt')) %}
+{{ shout.on_lines()(include('words.txt')) }}
 ```
 
 ---
@@ -247,7 +302,7 @@ use('data/toml')
 proj    = toml("pyproject.toml")
 VERSION = proj.get('project.version')
 %}
-Version: {% doc | VERSION %}
+Version: {{ VERSION }}
 ```
 
 ### Auto-numbered chapters
@@ -257,9 +312,9 @@ Version: {% doc | VERSION %}
 use('chapter')
 ch = chapter()
 %}
-{% doc | ch() %} Introduction
-{% doc | ch() %} Installation
-{% doc | ch() %} Usage
+{{ ch() }} Introduction
+{{ ch() }} Installation
+{{ ch() }} Usage
 ```
 
 Outputs: `# 1 Introduction`, `# 2 Installation`, `# 3 Usage`.
@@ -273,7 +328,7 @@ use('dedent')
 use('number')
 n = number(fmt="{:3d}  ")
 %}
-{% doc | n(dedent(include('src/core.py'))) %}
+{{ n(dedent(include('src/core.py'))) }}
 ```
 
 ### Embed a named snippet with line numbers
@@ -282,10 +337,10 @@ n = number(fmt="{:3d}  ")
 {%
 use('snippet')
 use('number')
-src = snippet('src/')
+src = snippet('src/**/*.py')   # glob to select only Python files
 n   = number(fmt="{:3d}  ")
 %}
-{% doc | n(src('main_loop')) %}
+{{ n(src('main_loop')) }}
 ```
 
 ### Build error on missing value

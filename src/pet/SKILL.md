@@ -7,8 +7,10 @@ version: 1.0.0
 # PET — Program Enhanced Text
 
 Skills for installing and running `pet`, a Python documentation automation tool.
-Templates are `.md.pet` files; `{% ... %}` blocks are executed and their output is
-spliced into the output document.
+Templates are `.md.pet` files with two kinds of Python blocks:
+
+- `{% ... %}` — execute statements; output via `print`, `doc |`, or `out()`
+- `{{ expr }}` — evaluate an expression and write its value directly (Jinja2-style)
 
 ---
 

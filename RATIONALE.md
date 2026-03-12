@@ -8,7 +8,7 @@ This document explains why **pet-doc** exists, what problem it
 solves, and why that problem is becoming more urgent in the age of
 large-language-model tooling.
 
-**Version:** 1.0.2 · **Repo:** https://github.com/verhasp/pet
+**Version:** 2.0.0 · **Repo:** https://github.com/verhasp/pet
 
 ---
 
@@ -62,7 +62,7 @@ Current release: {% doc | VERSION %}
 
 Now `VERSION` appears in the document, but it is not *stored* in the document.
 If the release changes, only `pyproject.toml` changes. The documentation
-updates automatically on the next `pet.cli:main doc.md.pet doc.md`.
+updates automatically on the next `<!-- ERROR evaluating expression: unsupported operand type(s) for |: 'str' and 'str' -->`.
 
 This applies equally to prose. If a section title, product name, or repository
 URL appears in multiple places, define it as a variable. At the top of this very
@@ -209,7 +209,7 @@ PET changes the contract between the author and the LLM:
   time. The LLM never touches these.
 
 In practice this means the LLM edits `.md.pet` files, not `.md` files. It
-writes `{% doc | VERSION %}` in the source, not `"1.0.0"`.
+writes `{{ VERSION }}` in the source, not `"1.0.0"`.
 The separation is enforced structurally: the variable is defined once, and the
 LLM has no mechanism to introduce a second copy.
 
@@ -314,11 +314,11 @@ The shift PET asks for is a small change in habit with a large change in
 outcome:
 
 **Instead of** writing `"version 1.0.0"` in a document, write
-`{% doc | VERSION %}` and define `VERSION` once from
+`{{ VERSION }}` and define `VERSION` once from
 `pyproject.toml`.
 
 **Instead of** pasting a code sample, write
-`{% doc | n(src('example')) %}` and let `snippet` pull
+`{{  n(src('example')) }}` and let `snippet` pull
 the live sample from the tested source.
 
 **Instead of** hoping someone notices when a field name changes, write a
@@ -334,5 +334,5 @@ machines do better, and that humans inevitably do worse as time pressure grows.
 
 ---
 
-*Generated from `RATIONALE.md.pet` by pet-doc 1.0.2 ·
-`pet.cli:main RATIONALE.md.pet RATIONALE.md`*
+*Generated from `RATIONALE.md.pet` by pet-doc 2.0.0 ·
+`<!-- ERROR evaluating expression: unsupported operand type(s) for |: 'str' and 'str' -->`*

@@ -1,2 +1,2 @@
 #! /bin/sh
-python -m hatch build --clean
+python3 -m hatch build --clean

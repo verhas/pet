@@ -25,12 +25,14 @@ ch = chapter()
 n  = number(fmt="{:2}. ")
 OB = '{' + '%'
 CB = '%' + '}'
+OE = '{' + '{'   # opening expression marker
+CE = '}' + '}'   # closing expression marker
 
 # ── Consistency checks ────────────────────────────────────────────────────────
 # These run every time the document is generated.
 # If they fail, the build fails — keeping docs and code in sync is enforced.
 
-_stated_version = "1.0.2"   # ← update this when you cut a release
+_stated_version = "2.0.0"   # ← update this when you cut a release
 if VERSION != _stated_version:
     sys.exit(
         f"\nCONSISTENCY FAILURE in RATIONALE.md.pet\n"
@@ -53,15 +55,15 @@ if MACRO_COUNT != _stated_macro_count:
 > *If information already exists in your project, a human should never maintain
 > a second copy of it.*
 
-This document explains why **{%doc | TOOL_NAME%}** exists, what problem it
+This document explains why **{{  TOOL_NAME }}** exists, what problem it
 solves, and why that problem is becoming more urgent in the age of
 large-language-model tooling.
 
-**Version:** {%doc | VERSION%} · **Repo:** {%doc | REPO%}
+**Version:** {{  VERSION }} · **Repo:** {{  REPO }}
 
 ---
 
-{%doc | ch()%} Documentation Is a Second Copy
+{{  ch() }} Documentation Is a Second Copy
 
 Every software project has two representations of its behaviour: the code and
 the documentation. The code is the primary source of truth — it is what runs.
@@ -84,7 +86,7 @@ is not possible.
 
 ---
 
-{%doc | ch()%} The Single-Source-of-Truth Principle
+{{  ch() }} The Single-Source-of-Truth Principle
 
 The DRY principle — *Don't Repeat Yourself* — is well understood in code.
 A version number lives in one place; every other reference derives from it.
@@ -106,12 +108,12 @@ VERSION = proj.get('project.version')
 And in the body:
 
 ```
-Current release: {%doc | OB%} doc | VERSION {%doc | CB%}
+Current release: {{  OB }} doc | VERSION {{  CB }}
 ```
 
 Now `VERSION` appears in the document, but it is not *stored* in the document.
 If the release changes, only `pyproject.toml` changes. The documentation
-updates automatically on the next `{%doc | TOOL_CMD | " doc.md.pet doc.md"%}`.
+updates automatically on the next `{{  TOOL_CMD | " doc.md.pet doc.md" }}`.
 
 This applies equally to prose. If a section title, product name, or repository
 URL appears in multiple places, define it as a variable. At the top of this very
@@ -121,7 +123,7 @@ other or with `pyproject.toml`.
 
 ---
 
-{%doc | ch()%} Automating What Can Be Automated
+{{  ch() }} Automating What Can Be Automated
 
 Not every piece of documentation can be derived from code. The *why* behind a
 design decision, the conceptual overview that helps a newcomer build a mental
@@ -145,7 +147,7 @@ Every item in that list is information that already exists in the project.
 Asking a human to copy it into documentation is asking them to perform a task
 a machine can do perfectly and will never forget to update.
 
-PET's {%doc | MACRO_COUNT%} built-in macros cover the most common cases:
+PET's {{  MACRO_COUNT }} built-in macros cover the most common cases:
 data files (`toml`, `yaml`, `json`, `xml`, `properties`, `env`), code inclusion
 (`snippet`, `include`), and structural generation (`chapter`, `number`).
 Because the macros are plain Python classes, any project-specific automation
@@ -154,7 +156,7 @@ be added with a single `.py` file dropped into `.pet/`.
 
 ---
 
-{%doc | ch()%} Consistency Checks: Document Unit Tests
+{{  ch() }} Consistency Checks: Document Unit Tests
 
 If a template can read data, it can also *assert* that data satisfies
 expectations. This is the document equivalent of a unit test.
@@ -200,13 +202,13 @@ test-driven development in code.
 
 ---
 
-{%doc | ch()%} PET in the Age of Large Language Models
+{{  ch() }} PET in the Age of Large Language Models
 
 The arguments above have been valid for decades. In the era of LLM tooling,
 they become critical.
 
 {%ch.open()%}
-{%doc | ch()%} The RAG Poisoning Problem
+{{  ch() }} The RAG Poisoning Problem
 
 Retrieval-Augmented Generation (RAG) systems answer questions by retrieving
 relevant documents and providing them as context to an LLM. The LLM then
@@ -233,7 +235,7 @@ schema — these are accurate at generation time, by construction. The only
 question is how recently the document was last generated, and that is a CI/CD
 question, not a documentation-quality question.
 
-{%doc | ch()%} The LLM-Assisted Writing Problem
+{{  ch() }} The LLM-Assisted Writing Problem
 
 The second dimension is the use of LLMs to *write* documentation. This
 introduces a subtler risk: **implicit copying**.
@@ -258,7 +260,7 @@ PET changes the contract between the author and the LLM:
   time. The LLM never touches these.
 
 In practice this means the LLM edits `.md.pet` files, not `.md` files. It
-writes `{%doc | OB%} doc | VERSION {%doc | CB%}` in the source, not `"1.0.0"`.
+writes `{{  OE }} VERSION {{ CE }}` in the source, not `"1.0.0"`.
 The separation is enforced structurally: the variable is defined once, and the
 LLM has no mechanism to introduce a second copy.
 
@@ -282,7 +284,7 @@ all consistency checks that will fail the build if the code diverges from the
 prose — was produced in response to a single prompt. No iteration was needed
 on the template logic. The Python was correct immediately, because it is Python.
 
-{%doc | ch()%} The Compounding Problem
+{{  ch() }} The Compounding Problem
 
 The two risks above combine into a feedback loop.
 
@@ -308,7 +310,7 @@ checks fail the build when prose claims diverge from code reality. The template
 structure makes it explicit — to both human authors and LLM assistants — which
 values are authoritative and where they come from.
 
-{%doc | ch()%} The Template vs. Regeneration Question
+{{  ch() }} The Template vs. Regeneration Question
 
 A natural question arises: if an LLM can regenerate the final Markdown every
 time something changes, why introduce the extra step of a PET template at all?
@@ -357,17 +359,17 @@ for documents that do not have that requirement.
 
 ---
 
-{%doc | ch()%} In Practice
+{{  ch() }} In Practice
 
 The shift PET asks for is a small change in habit with a large change in
 outcome:
 
 **Instead of** writing `"version 1.0.0"` in a document, write
-`{%doc | OB%} doc | VERSION {%doc | CB%}` and define `VERSION` once from
+`{{  OE }} VERSION {{  CE }}` and define `VERSION` once from
 `pyproject.toml`.
 
 **Instead of** pasting a code sample, write
-`{%doc | OB%} doc | n(src('example')) {%doc | CB%}` and let `snippet` pull
+`{{  OE }}  n(src('example')) {{  CE }}` and let `snippet` pull
 the live sample from the tested source.
 
 **Instead of** hoping someone notices when a field name changes, write a
@@ -383,5 +385,5 @@ machines do better, and that humans inevitably do worse as time pressure grows.
 
 ---
 
-*Generated from `RATIONALE.md.pet` by {%doc | TOOL_NAME%} {%doc | VERSION%} ·
-`{%doc | TOOL_CMD | " RATIONALE.md.pet RATIONALE.md"%}`*
+*Generated from `RATIONALE.md.pet` by {{  TOOL_NAME }} {{  VERSION }} ·
+`{{  TOOL_CMD | " RATIONALE.md.pet RATIONALE.md" }}`*

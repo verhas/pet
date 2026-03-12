@@ -1,7 +1,7 @@
-<!-- ERROR executing code block: Snippet 'my_function' already exists in the file 'src/pet/AUTHORING_SKILL.md' -->
+
 # PET Macro Authoring Guide
 
-> **Version 1.0.2** · For the rationale behind PET see
+> **Version 2.0.0** · For the rationale behind PET see
 > [RATIONALE.md](RATIONALE.md)
 
 A *macro* is any `.py` file placed in the `.pet/` directory of your project.
@@ -20,7 +20,17 @@ All code examples are pulled live from `src/pet/macros`.
 Before looking at patterns, it helps to understand exactly what `use()` does:
 
 ```python
-<!-- ERROR executing code block: name 'dedoc' is not defined -->
+def use(what):
+    matches = sorted(Path('.pet').glob(f'{what}.py'))
+    if not matches:
+        print(f"<!-- ERROR: No macro matching '{what}' found in .pet/ -->")
+        return
+    for path in matches:
+        try:
+            exec(path.read_text(encoding='utf-8'), exec_namespace)
+        except Exception as e:
+            print(f"<!-- ERROR executing .pet/{path.name}: {str(e)} -->")
+
 ```
 
 That is all. PET reads the file as text and `exec`s it into the same namespace
@@ -49,7 +59,10 @@ produces the same output, and there is nothing to configure.
 ### `include.py`
 
 ```python
-<!-- ERROR executing code block: name 'dedoc' is not defined -->
+def include(filename):
+    with open(filename, 'r', encoding='utf-8') as file:
+        return file.read()
+
 ```
 
 `include` is three lines of logic. It takes a filename, returns its content.
@@ -58,7 +71,17 @@ Templates use it as `{% doc | include('src/app.py') %}`.
 ### `dedent.py`
 
 ```python
-<!-- ERROR executing code block: name 'dedoc' is not defined -->
+import textwrap
+
+
+def dedent(text):
+    lines = [line.rstrip() for line in text.split('\n')]
+    while lines and not lines[0]:
+        lines.pop(0)
+    while lines and not lines[-1]:
+        lines.pop()
+    return textwrap.dedent('\n'.join(lines))
+
 ```
 
 `dedent` takes a string and returns a string. It is designed to compose with
@@ -80,7 +103,22 @@ When the macro needs **configuration** set once at construction time, or needs
 to **accumulate state** across multiple calls, use a class with `__call__`.
 
 ```python
-<!-- ERROR executing code block: name 'dedoc' is not defined -->
+class number:
+
+    def __init__(self, start=1, step=1, fmt="{} "):
+        self.count = start
+        self.step = step
+        self.fmt = fmt
+
+    def __call__(self, text):
+        lines = text.strip().split('\n')
+        result = []
+        for line in lines:
+            num = self.fmt.format(self.count)
+            self.count += self.step
+            result.append(f"{num}{line}" if line else num.rstrip())
+        return '\n'.join(result)
+
 ```
 
 The template creates an instance — `n = number(fmt="{:3d} ")` — and then
@@ -108,7 +146,55 @@ When the macro exposes several distinct operations, give them explicit names.
 `__call__` handles the most common one; named methods handle the rest.
 
 ```python
-<!-- ERROR executing code block: name 'dedoc' is not defined -->
+class chapter:
+
+    def __init__(self, header_prefix="#", sep=" "):
+        """Initialize with a single level starting at 0."""
+        self.header_prefix = header_prefix
+        self.sep = sep
+        self.levels = [0]
+
+    def __call__(self):
+        """Alias for next()."""
+        return self.next()
+
+    def next(self):
+        # Increment the current (deepest) level
+        self.levels[-1] += 1
+
+        # Create the chapter number string (e.g., "1.2.3")
+        chapter_number = ".".join(str(level) for level in self.levels)
+
+        prefix = self.header_prefix * len(self.levels)
+        return f"{prefix}{self.sep}{chapter_number}"
+
+    def open(self):
+        self.levels.append(0)
+
+    def close(self):
+        if len(self.levels) <= 1:
+            raise ValueError("Cannot close the root level")
+
+        self.levels.pop()
+
+    def reset(self):
+        """Reset the counter to initial state."""
+        self.levels = [0]
+
+    def get_current_level(self):
+        return len(self.levels)
+
+    def get_current_numbers(self):
+        return tuple(self.levels)
+
+    def __str__(self):
+        """String representation showing current state."""
+        return f"chapter(levels={self.levels})"
+
+    def __repr__(self):
+        """Developer representation."""
+        return self.__str__()
+
 ```
 
 In templates, `ch()` is the common case; `ch.open()` / `ch.close()` are used
@@ -138,7 +224,50 @@ traversal and automatic wrapping of nested structures.
 ### The base class — `_node.py`
 
 ```python
-<!-- ERROR executing code block: name 'dedoc' is not defined -->
+class _DataNode:
+
+    @classmethod
+    def _from_data(cls, data):
+        obj = object.__new__(cls)
+        obj._data = data
+        return obj
+
+    def _wrap(self, value):
+        if isinstance(value, dict):
+            return self.__class__._from_data(value)
+        if isinstance(value, list):
+            return [self._wrap(v) for v in value]
+        return value
+
+    def get(self, path):
+        current = self._data
+        for key in path.split('.'):
+            if current is None:
+                return None
+            if isinstance(current, list):
+                try:
+                    current = current[int(key)]
+                except (ValueError, IndexError):
+                    return None
+            elif isinstance(current, dict):
+                current = current.get(key)
+            else:
+                return None
+        return self._wrap(current)
+
+    def __iter__(self):
+        """Iterate over list items or dict values, wrapping dicts."""
+        items = self._data if isinstance(self._data, list) else (
+            self._data.values() if isinstance(self._data, dict) else []
+        )
+        for item in items:
+            yield self._wrap(item)
+
+    def __str__(self):
+        if isinstance(self._data, (dict, list)) or self._data is None:
+            return ''
+        return str(self._data)
+
 ```
 
 `_DataNode` provides three things:
@@ -152,7 +281,16 @@ traversal and automatic wrapping of nested structures.
 ### Extending the base — `yaml.py`
 
 ```python
-<!-- ERROR executing code block: name 'dedoc' is not defined -->
+import yaml as _yaml
+from pet.macros.data._node import _DataNode
+
+
+class yaml(_DataNode):
+
+    def __init__(self, filename):
+        with open(filename, 'r', encoding='utf-8') as f:
+            self._data = _yaml.safe_load(f)
+
 ```
 
 The subclass does exactly two things: open the file and load it into
@@ -173,9 +311,33 @@ part of the key, not a path separator. Splitting on `.` would corrupt it.
 For flat `key → value` formats, skip `_DataNode` and use a plain dict:
 
 ```python
-<!-- ERROR executing code block: name 'dedoc' is not defined -->
+class properties:
+
+    def __init__(self, filename):
+        self._data = {}
+        with open(filename, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith('#') or line.startswith('!'):
+                    continue
+                for sep in ('=', ':'):
+                    if sep in line:
+                        key, value = line.split(sep, 1)
+                        self._data[key.strip()] = value.strip()
+                        break
+
+    def get(self, key):
+        return self._data.get(key)
+
+    def __iter__(self):
+        """Yield ``(key, value)`` pairs for all properties."""
+        return iter(self._data.items())
+
+    def __str__(self):
+        return ''
+
 ```
-do 1, 
+do 1,
 **When to extend `_DataNode`:** hierarchical formats where dots in path
 expressions are navigation, not key characters (YAML, JSON, TOML, XML).
 
@@ -190,7 +352,32 @@ Some macros are not about data — they transform text. PET provides `pipe`
 as a composable transformation primitive.
 
 ```python
-<!-- ERROR executing code block: name 'dedoc' is not defined -->
+class Pipe:
+
+    def __init__(self):
+        self._func = lambda x: x
+
+    @classmethod
+    def _make(cls, func):
+        p = cls()
+        p._func = func
+        return p
+
+    def __call__(self, text):
+        return self._func(text)
+
+    def and_then(self, other_func):
+        return Pipe._make(lambda text: other_func(self(text)))
+
+    def __or__(self, other_func):
+        return self.and_then(other_func)
+
+    def on_lines(self):
+        return Pipe._make(lambda text: '\n'.join(self(line) for line in text.split('\n')))
+
+
+pipe = Pipe()
+
 ```
 
 Three design choices here are worth understanding before applying the pattern:
@@ -360,4 +547,4 @@ with an underscore — it is a library module, not a user-facing macro.
 ---
 
 *Generated from `MACROGUIDE.md.pet` by pet-doc
-1.0.2 · `pet MACROGUIDE.md.pet MACROGUIDE.md`*
+2.0.0 · `pet MACROGUIDE.md.pet MACROGUIDE.md`*

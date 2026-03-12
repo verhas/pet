@@ -84,41 +84,40 @@ def process_template(input_file, output_file):
             # Add any global variables you want available to the template code
         }
 
-        # Pattern to match {% ... %} blocks
-        pattern = r'\{%\s*(.*?)\s*%\}'
+        # Pattern to match {% ... %} code blocks and {{ ... }} expressions
+        pattern = r'\{%\s*(.*?)\s*%\}|\{\{\s*(.*?)\s*\}\}'
 
         def execute_code_block(match):
-            """Execute a single code block and return its output."""
-            code = match.group(1).strip()
+            """Execute a {% %} block or evaluate a {{ }} expression."""
+            if match.group(1) is not None:
+                # {% ... %} — execute as statement(s), capture stdout
+                code = match.group(1).strip()
+                if not code:
+                    return ""
+                stdout_capture = io.StringIO()
+                stderr_capture = io.StringIO()
+                try:
+                    with redirect_stdout(stdout_capture), redirect_stderr(stderr_capture):
+                        exec(code, exec_namespace, exec_namespace)
+                    output = stdout_capture.getvalue()
+                    error_output = stderr_capture.getvalue()
+                    if error_output:
+                        output += f"\n<!-- ERROR: {error_output.strip()} -->"
+                    return output
+                except Exception as e:
+                    return f"<!-- ERROR executing code block: {str(e)} -->"
+            else:
+                # {{ ... }} — evaluate expression, write result to document
+                expr = match.group(2).strip()
+                if not expr:
+                    return ""
+                try:
+                    value = eval(expr, exec_namespace, exec_namespace)
+                    return "" if value is None else str(value)
+                except Exception as e:
+                    return f"<!-- ERROR evaluating expression: {str(e)} -->"
 
-            if not code:
-                return ""
-
-            # Capture stdout and stderr
-            stdout_capture = io.StringIO()
-            stderr_capture = io.StringIO()
-
-            try:
-                # Redirect stdout and stderr to capture output
-                with redirect_stdout(stdout_capture), redirect_stderr(stderr_capture):
-                    # Execute the code and update the namespace with any new variables
-                    exec(code, exec_namespace, exec_namespace)
-
-                # Get the captured output
-                output = stdout_capture.getvalue()
-                error_output = stderr_capture.getvalue()
-
-                # If there were errors, include them in the output
-                if error_output:
-                    output += f"\n<!-- ERROR: {error_output.strip()} -->"
-
-                return output
-
-            except Exception as e:
-                # Return error information as a comment
-                return f"<!-- ERROR executing code block: {str(e)} -->"
-
-        # Replace all {% %} blocks with their executed output
+        # Replace all {% %} blocks and {{ }} expressions with their output
         processed_content = re.sub(pattern, execute_code_block, content, flags=re.DOTALL)
 
         # Write the output file

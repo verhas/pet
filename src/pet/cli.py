@@ -3,6 +3,7 @@ import sys
 import time
 import argparse
 import shutil
+from importlib.metadata import version
 from pathlib import Path
 from pet.processor import process_template
 
@@ -98,8 +99,10 @@ def main():
 
     parser = argparse.ArgumentParser(
         prog="pet",
-        description="Program Enhanced Text — documentation automation tool",
+        description=f"Program Enhanced Text {version('pet-doc')} — documentation automation tool",
     )
+    parser.add_argument("--version", "-V", action="version",
+                        version=f"pet {version('pet-doc')}")
     sub = parser.add_subparsers(dest="command")
 
     p = sub.add_parser("process", help="Process a .pet template file")
